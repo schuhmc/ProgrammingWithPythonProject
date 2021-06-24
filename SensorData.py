@@ -199,6 +199,7 @@ class SensorData:
         if(ax != ""):
             ax.set(title=title, ylabel=self.units[column])
             sns.lineplot(ax=ax, data=self.df, x=self.df.columns[0], y=column, color=color)
+            ax.grid(True, linewidth=0.5, color="gray")
             return True
         else:
             sns.lineplot(data=self.df, x=self.df.columns[0], y=column, color=color)
@@ -235,6 +236,7 @@ class SensorData:
             sns.lineplot(ax=ax, x=max_values.index, y=max_values.values, color=colors[1], marker="x")
             sns.lineplot(ax=ax, x=min_values.index, y=min_values.values, color=colors[0], marker="x")
             ax.legend(["max", "min"])
+            ax.grid(True, linewidth=0.5, color="gray")
         else:
             sns.lineplot(x=max_values.index, y=max_values.values, color=colors[1], marker="x")
             sns.lineplot(x=min_values.index, y=min_values.values, color=colors[0], marker="x")
@@ -329,7 +331,6 @@ if(__name__ == "__main__"):
     con.dailyMinMaxPlot(column="Illuminance", title="Daily min/max Illuminance", ax=axes[4,0], colors=["darkblue", "white"])
     con.heatmap(columns=["Temperature", "Humidity", "Pressure","Wind","Air Quality", "Illuminance"], ax=axes[4,1])
 
-    fig.autofmt_xdate()
     fig.tight_layout()
     fig.savefig(args.plotfile)
 
