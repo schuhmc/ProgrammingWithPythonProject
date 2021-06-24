@@ -1,6 +1,3 @@
-#ToDo: add support for direct sql queries for the server
-# add support for direct read from a csv file
-
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
@@ -275,34 +272,34 @@ if(__name__ == "__main__"):
     parser.add_argument('-o', '--outfile', help="Output file to write the generated html to.", required=False, type=str, default="./weather.html")
     parser.add_argument('-p', '--plotfile', help="File the plot should be written to.", required=False, type=str, default="./plots.svg")
     parser.add_argument('-d', '--days', help="Number of last n days to fetch data from. Default is 14", required=False, default=14, type=int)
-    parser.add_argument('-c', '--credentials', help=".conf file containing credentials for web and sql method. See example.conf for more information", required=False, type=str)
+    parser.add_argument('-c', '--credentials', help=".conf file containing credentials for web and sql method as well as column names and units. See example.conf for more information", required=True, type=str)
     parser.add_argument('-f', '--csvfile', help="Path to CSV file if using method 'csv'", required=False, type=str)
 
     args = parser.parse_args()
 
     if(args.method == "web"):
-        col_names = ["Time", "Temperature", "Humidity", "Pressure", "Wind", "Battery", "Air Quality", "Illuminance", "Sky Temperature"]
-        col_units = ["", "°C", "%rH", " kPa", " rps", " V", " kOhm", " log(Lux)", "°C"]
-
-        config = configparser.ConfigParser()
+        config = configparser.RawConfigParser()
         config.read(args.credentials)
+        col_names = config['web']['col_names'].split(",")
+        col_units = config['web']['col_units'].split(",")
 
         con = SensorData("web", url=config['web']['url'], apikey=config['web']['apikey'])
         con.fetch(args.days, col_names=col_names, col_units=col_units)
 
     elif(args.method == "sql"):
-        col_names = ["Time", "Temperature", "Humidity", "Pressure", "Dew Point", "Wind", "Battery", "Air Quality", "Illuminance", "IR Ambient", "Sky Temperature"]
-        col_units = ["", "°C", "%rH", " kPa", " K", " rps", " V", " kOhm", " log(Lux)", "°C", "°C"]
-
-        config = configparser.ConfigParser()
+        config = configparser.RawConfigParser()
         config.read(args.credentials)
+        col_names = config['sql']['col_names'].split(",")
+        col_units = config['sql']['col_units'].split(",")
 
-        con = SensorData.SensorData("sql", sql_credentials=[config['sql']['host'] , config['sql']['db'], config['sql']['pw'], config['sql']['table'], config['sql']['time_column']])
+        con = SensorData("sql", sql_credentials=[config['sql']['host'] , config['sql']['db'], config['sql']['user'], config['sql']['pw'], config['sql']['table'], config['sql']['time_column']])
         con.fetch(args.days, col_names=col_names, col_units=col_units )
 
     elif(args.method == "csv"):
-        col_names = ["Time", "Temperature", "Humidity", "Pressure", "Wind", "Battery", "Air Quality", "Illuminance", "Sky Temperature"]
-        col_units = ["", "°C", "%rH", " kPa", " rps", " V", " kOhm", " log(Lux)", "°C"]
+        config = configparser.RawConfigParser()
+        config.read(args.credentials)
+        col_names = config['csv']['col_names'].split(",")
+        col_units = config['csv']['col_units'].split(",")
 
         con = SensorData("csv", file=args.csvfile)
         con.fetch(args.days, col_names=col_names, col_units=col_units)
@@ -332,6 +329,7 @@ if(__name__ == "__main__"):
     con.dailyMinMaxPlot(column="Illuminance", title="Daily min/max Illuminance", ax=axes[4,0], colors=["darkblue", "white"])
     con.heatmap(columns=["Temperature", "Humidity", "Pressure","Wind","Air Quality", "Illuminance"], ax=axes[4,1])
 
+    fig.autofmt_xdate()
     fig.tight_layout()
     fig.savefig(args.plotfile)
 
