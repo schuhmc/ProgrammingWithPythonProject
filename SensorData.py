@@ -279,6 +279,8 @@ if(__name__ == "__main__"):
 
     args = parser.parse_args()
 
+    print("fetching data...")
+
     if(args.method == "web"):
         config = configparser.RawConfigParser()
         config.read(args.credentials)
@@ -308,11 +310,14 @@ if(__name__ == "__main__"):
 
     # Generate output:
 
+    print("Deriving columns...")
+
     #Derive columns
     con.mutate("Battery", "(x+2)/135")
     con.mutate("Air Quality", "x/1000")
     con.mutate("Illuminance", "np.log10(x)")
 
+    print("generating plots...")
     #Plot data
     plt.style.use("dark_background")
     plt.rcParams["font.family"] = "monospace"
@@ -334,6 +339,7 @@ if(__name__ == "__main__"):
     fig.tight_layout()
     fig.savefig(args.plotfile)
 
+    print("Generating summaries and writing html...")
     #Write output to html
     f = open(args.outfile, "w")
 
@@ -347,3 +353,5 @@ if(__name__ == "__main__"):
 
     f.write(html_code)
     f.close()
+
+    print("all done!")
